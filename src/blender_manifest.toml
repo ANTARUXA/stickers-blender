@@ -1,0 +1,23 @@
+schema_version = "1.0.0"
+
+id = "stickers_blender"
+version = "0.0.1"
+name = "Stickers Antaruxa"
+tagline = "This is another extension"
+maintainer = "Juan Nouche <juan.nouche@antaruxa.com>"
+type = "add-on"
+
+website = "https://github.com/ANTARUXA/stickers-blender"
+
+tags = ["Animation", "User Interface", "Material", "3D View", "Node"]
+
+blender_version_min = "4.2.0"
+
+license = [
+    "SPDX:GPL-3.0-or-later",
+]
+
+copyright = [
+   "2024 Juan R Nouche",
+   "2024 Antaruxa SL",
+]
