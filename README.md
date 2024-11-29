@@ -60,7 +60,7 @@ sticker object.
 To create a `sticker`, open the `Stickers` tab on 3d view sidebar tab. Fill the field 
 `Stiker Name` whith the name you have choosen.
 
-> [!WARNING]
+> [!IMPORTANT]
 > The name of the sticker must be UNIQUE.
 
 Choose an image or the first frame of an image sequence using the folder tool from the
@@ -125,9 +125,11 @@ geometry. The `sticker` is essentially constrained to the surface of the
 geometry, and it's movement will depend directly to that.
 
 `{sticker_name}_base_node` which is the main controller node, holds the
-principal attributes and can be animated.
+principal properties and can be animated.
 
 The `base_node` is in charge of all the channles that can be animated.
+
+1. You need to use standard properties to animate these features:
 
 * Translation
 
@@ -143,15 +145,30 @@ The `base_node` is in charge of all the channles that can be animated.
   Both `X` and `Y` axis can be scaled and keyed, scaling on the Z axis doesn't
   affect the sticker.
 
+2. And custom properties to animate the other sticker features:
+
 * Flip
 
-  Two custom attributes, `flip X` and `flip Y`, are meant to mirror the
-  `sticker` horizontally or vertically.
+  Two custom properties, `flip_X` and `flip_Y`, are meant to mirror the
+  sticker horizontally or vertically.
 
 * Transparency
 
-  Controls the transparency of the sticker (0 - Opaque, 1 - Completely
-  transparent)
+  Using the custom property `transparency` you can control the transparency of the
+  sticker (0 - Opaque, 1 - Completely transparent)
+
+* Selecting a specific pose from the frame sequence (only in `Pose Mode`):
+
+  The custom property `active_frame` allows to choose by number one of the poses 
+  contained in the sequence of images. Keys can be set for each selected pose.
+
+
+### Finding the sticker name
+
+For some of `Stickers` utilities you will need to fill in the sticker name in some panels, if
+you don't remember it, you can look it up in the custom `sticker_name` property. It is
+read-only as the sticker name cannot be changed once it is created.
+
 
 ### Delete a sticker
 
@@ -170,11 +187,14 @@ top to bottom and vice versa.
 
 ### Specific image selection (Multi-pose sticker)
 
-The attribute `frame_actual` provides the artist with the ability to select one
+The custom property `active_frame` provides the artist with the ability to select one
 image from the *image sequence* and use it as a `pose`, without the image
 sequence being linked by the current frame of the scene.
 
-By setting this attribute to any valid number for the image sequence, the
+It is possible to consult how many frames are there checking `frame_count` custom
+readonly property
+
+By setting this property to any valid number for the image sequence, the
 `sticker` will render the selected image.
 
 
