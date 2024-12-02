@@ -185,15 +185,17 @@ class Sticker(object):
         #deactivated in this version
         #self.base_node = create_circle(f"{name}_base_node", self.collection, radius = 1.0)
         self.base_node.parent = self.anchor_empty
-        create_constraint_to_object(self.base_node, self.current_obj, 'SHRINKWRAP', "sticker_anchor_shrinkwrap")
-        create_constraint_to_object(self.base_node, self.current_obj, 'TRACK_TO', "sticker_anchor_track_to")
+        create_constraint_to_object(self.base_node, self.current_obj, 'SHRINKWRAP', f"{name}_geo_shrinkwrap")
+        create_constraint_to_object(self.base_node, self.current_obj, 'TRACK_TO', f"{name}_geo_track_to")
         self.base_node['sticker_name'] = name
         #deactivated in this version
         #self.base_node['hide_plane'] = False
-        self.base_node['flip_horiz'] = False
-        self.base_node['flip_vert'] = False
+        self.base_node['flip_X'] = False
+        self.base_node['flip_Y'] = False
         self.base_node.lock_rotation[0] = True #Locking RotateX
         self.base_node.lock_rotation[1] = True #Locking RotateY
+        self.base_node.lock_scale[2] = True    #Locking ScaleZ
+
 
 
         
@@ -208,7 +210,7 @@ class Sticker(object):
 
         self.calcnormal_node = create_empty(f"{name}_normal_node", self.collection,'PLAIN_AXES')
         self.calcnormal_node.parent = self.base_node
-        self.calcnormal_node.location = Vector((0.0, 0.0, -1.0))
+        self.calcnormal_node.location = Vector((0.0, 0.0, 1.0))
         self.calcnormal_node.hide_viewport = True        
     
     #realated with plane creation deactivated in this version

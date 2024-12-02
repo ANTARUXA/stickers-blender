@@ -76,6 +76,10 @@ class AddNewSticker(bpy.types.Operator):
         img_firstframe = None
         
     
+        if  not os.path.exists(img_filename):
+            self.report({'ERROR'}, f"The filename {img_filename} does not exist. Check the filename.")
+            return{'CANCELLED'}
+
         if not is_valid_image_extension(img_filename):
             self.report({'ERROR'}, "Selected image must have this extension: .png.")
             return{'CANCELLED'}

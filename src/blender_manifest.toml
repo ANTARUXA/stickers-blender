@@ -4,7 +4,7 @@ id = "stickers_blender"
 version = "0.0.1"
 name = "Stickers Antaruxa"
 tagline = "This is another extension"
-maintainer = "Juan Nouche <juan.nouche@antaruxa.com>"
+maintainer = "Developer name <juan.nouche@antaruxa.com>"
 type = "add-on"
 
 website = "https://github.com/ANTARUXA/stickers-blender"

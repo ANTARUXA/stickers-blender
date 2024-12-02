@@ -168,8 +168,7 @@ def create_empty(name='vertex-parent',coll=None, type='PLAIN_AXES'):
     empty.empty_display_type = type
     display_size = 1
     if type == 'SPHERE' or type == 'CIRCLE':
-        display_size = 1.0
-        empty.rotation_euler[0]=90
+        display_size = 0.5
     
     empty.empty_display_size = display_size
     coll.objects.link(empty) #añadimos a la collection
@@ -218,15 +217,13 @@ def create_constraint_to_object(obj=None, target_obj=None, kind='TRACK_TO', name
         constraint.target = target_obj
     if kind == 'SHRINKWRAP':
         constraint.use_track_normal = True
-        constraint.track_axis = 'TRACK_NEGATIVE_Z'
-        
-        # shrinkwrap_type must be 'TARGET_PROJECT' cause 'NEAREST_SURFACE' (point) generate artifacts when it's moving
+        constraint.track_axis = 'TRACK_Z'
         constraint.shrinkwrap_type = 'TARGET_PROJECT'
-        # shrinkwrap wrap_mode must be 'ON_SURFACE' cause 'OUTSIDE' frees the handler outside surface
         constraint.wrap_mode = 'ON_SURFACE'
     else:
         constraint.target_space='LOCAL'
-        constraint.up_axis = 'UP_Z'
+        constraint.track_axis = 'TRACK_Y'
+        constraint.up_axis = 'UP_Y'
         
     return constraint
 

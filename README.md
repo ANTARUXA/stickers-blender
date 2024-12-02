@@ -15,6 +15,10 @@ more complex rigs like a facial system.
 
 `Stickers` makes combining these 2D and 3D animation techniques a lot easier.
 
+> [!IMPORTANT]
+>`Stickers` does not need to modify the UVs of the base surface to work, but 
+>it's best to have a regular UV distibution on it.
+
 ## Image types
 
 `Stickers` can both load **still images** and **image sequences**. Artist can
@@ -23,10 +27,8 @@ individual frames. This is useful for cases where each image in the sequence is
 a different pose or variant of the same element.
 
 > [!WARNING]
->`Stickers` can load any type of image, but some functionality
->(specially Alpha channels and tranparencies) have been only tested with `.png`
->files. If you try and use other filetypes, do it at your own risk, and report
->any bug that you may encounter.
+>This version of `Stickers` can load only `.png` image type. In next versions 
+>we will add more types of images.
 
 ## Requirements
 
@@ -68,7 +70,6 @@ field `Image Filename`.
 
 > [!IMPORTANT]
 > For the sticker to work, an image or sequence of images must always be selected.
-
 
 Then select the geometry where you want to paste the sticker and switch to `Edit Mode`.
 At that time, select only one of the vertices, it is best to select a vertex as close as 
@@ -124,6 +125,12 @@ node called `{sticker_name}_anchor_node` that 'anchors' the sticker to the
 geometry. The `sticker` is essentially constrained to the surface of the
 geometry, and it's movement will depend directly to that.
 
+> [!WARNING]
+>`Stickers` use a shrinkwarp to the main surface, so if te main surface needs to 
+>animate basic transforms or mesh transformations (like blend shapes), it's best 
+>to animate them first and then do sticker animation to avoid undesirable
+>displacements over the sticker rotation.
+
 `{sticker_name}_base_node` which is the main controller node, holds the
 principal properties and can be animated.
 
@@ -143,7 +150,7 @@ The `base_node` is in charge of all the channles that can be animated.
 * Scaling
 
   Both `X` and `Y` axis can be scaled and keyed, scaling on the Z axis doesn't
-  affect the sticker.
+  affect the sticker. 
 
 2. And custom properties to animate the other sticker features:
 

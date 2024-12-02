@@ -147,16 +147,17 @@ def create_sticker_material_nodes(main_material=None, node_tree = None,
     # set parameters of the mapping node
     map_node.inputs["Location"].default_value[0] = 0.5
     map_node.inputs["Location"].default_value[1] = 0.5
-    map_node.inputs[3].default_value[1] = -1
+    map_node.inputs["Scale"].default_value[1] = 1
+        
     #
     obj_who_drives = f"{sticker_name}_base_node"
     map_driver = bpy.data.objects[obj_who_drives]
-    add_driver_to_material(map_node, 
-                           map_driver, 
-                           "rotation_euler.z", "rotz", "-(rotz) + 0.0", 
-                           "Rotation", ndx = 2, 
-                           transf_type = 'ROT_Z', 
-                           space = 'TRANSFORM_SPACE')
+    # add_driver_to_material(map_node, 
+    #                        map_driver, 
+    #                        "rotation_euler.z", "rotz", "-(rotz) + 0.0", 
+    #                        "Rotation", ndx = 2, 
+    #                        transf_type = 'ROT_Z', 
+    #                        space = 'TRANSFORM_SPACE')
 
 
     # add the texture coordinate
@@ -884,15 +885,7 @@ def check_if_is_the_topmost(material = None, sticker_name = ""):
         return False
     
     
-def check_if_is_the_downmost(material = None, sticker_name = ""):
-    """Check if the stickershader is the downmost
-    material     -- the material where the sticker is connected
-    sticker_name -- the name of the sticker that we are going to check
-    returns:
-    True or False
-    """   
-    
-    node_tree = material.node_tree
+def check_if_is_the_downmost(material = None, sticker_name = ""): 
     
     # sticker_group = node_tree.nodes[f"{sticker_name}_group"] 
     mix_node = node_tree.nodes[f"{sticker_name}_mix_node"] #getting the final node
@@ -902,7 +895,6 @@ def check_if_is_the_downmost(material = None, sticker_name = ""):
         return False
     else:
         return True
-
 
 
 # ==== SHADERNODES FUNCTIONS (AUX) - CONECTIONS AND MOVES

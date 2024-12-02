@@ -31,12 +31,12 @@ def get_sticker_name(self):
 #                 child.hide_viewport = value
 #                 child.hide_render = value
 
-'''Getter-Setter flip_horiz Boolean
+'''Getter-Setter flip_X Boolean
 '''
-def get_flip_horiz(self):
-    return self["flip_horiz"]
-def set_flip_horiz(self,value):
-    self["flip_horiz"]=value
+def get_flip_X(self):
+    return self["flip_X"]
+def set_flip_X(self,value):
+    self["flip_X"]=value
     obj = self.id_data
     if "_base_node" in obj.name:
         sticker_name = obj.sticker_name
@@ -49,12 +49,12 @@ def set_flip_horiz(self,value):
         actualvalue = main_material.node_tree.nodes[f"{sticker_name}_mapping"].inputs[3].default_value[0]
         main_material.node_tree.nodes[f"{sticker_name}_mapping"].inputs[3].default_value[0] = -actualvalue
 
-'''Getter-Setter flip_vert Boolean
+'''Getter-Setter flip_Y Boolean
 '''
-def get_flip_vert(self):
-    return self["flip_vert"]
-def set_flip_vert(self,value):
-    self["flip_vert"]=value
+def get_flip_Y(self):
+    return self["flip_Y"]
+def set_flip_Y(self,value):
+    self["flip_Y"]=value
     obj = self.id_data
     if "_base_node" in obj.name:
         sticker_name = obj.sticker_name

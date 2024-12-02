@@ -23,10 +23,10 @@ from stickers_blender.common.get_set_pops import (
     # used by plane deactivated in this version
     # get_hide_plane,   
     # set_hide_plane,   
-    get_flip_horiz,   
-    set_flip_horiz,   
-    get_flip_vert,
-    set_flip_vert,
+    get_flip_X,   
+    set_flip_X,   
+    get_flip_Y,
+    set_flip_Y,
     get_frame_count, 
     get_active_frame, 
     set_active_frame,
@@ -55,8 +55,8 @@ _addon_properties = {
         "sticker_name": bpy.props.StringProperty(get=get_sticker_name), 
         # used for plane deactivated in this version
         # "hide_plane": bpy.props.BoolProperty(options={'ANIMATABLE'}, get = get_hide_plane, set = set_hide_plane),
-        "flip_horiz": bpy.props.BoolProperty(options={'ANIMATABLE'}, get = get_flip_horiz, set = set_flip_horiz),
-        "flip_vert": bpy.props.BoolProperty(options={'ANIMATABLE'}, get= get_flip_vert, set = set_flip_vert),
+        "flip_X": bpy.props.BoolProperty(options={'ANIMATABLE'}, get = get_flip_X, set = set_flip_X),
+        "flip_Y": bpy.props.BoolProperty(options={'ANIMATABLE'}, get= get_flip_Y, set = set_flip_Y),
         "frame_count": bpy.props.IntProperty(name="Number of frames", default = 1, get = get_frame_count),
         "active_frame": bpy.props.IntProperty(name="Active Frame", options={'ANIMATABLE'}, get = get_active_frame, set = set_active_frame),
         "initial_frame": bpy.props.IntProperty(name="Initial frames", default = 1, get = get_initial_frame),
@@ -72,16 +72,12 @@ def register():
     auto_load.register()
     add_properties(_addon_properties)
 
-    # Internationalization
-    # load_dictionary(dictionary)
-    # bpy.app.translations.register(__addon_name__, common_dictionary)
 
     print("{} addon is installed.".format(bl_info["name"]))
 
 
 def unregister():
-    # # Internationalization
-    # bpy.app.translations.unregister(__addon_name__)
+
 
     # unRegister classes
     auto_load.unregister()
