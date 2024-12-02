@@ -118,6 +118,22 @@ Check the `Multi Pose` checkbox and follow the same instructions as a
 >numbered. Make sure they follow a pattern that Blender can detect
 >as an image sequence
 
+### Shading
+
+Each tag creates a group of nodes connected to the main material of the base geometry. 
+
+The main material is required to be a `Principled BSDRF` shader.
+In this version, the sticker nodes are only connected to the `Base Color` input of the main shader.
+
+A texture node connected to the base color input is required. If none is connected, the sticker
+will automatically create a `Mix` shader node by copying the value of the `Base Color` property
+to the `A` input of the new shader mix node. After that, the insertion of the sticker will be possible. 
+
+If you later want to change the base color you will have to do it in the `A` entry of the mix node.
+
+The order in which the stickers are projected in the main shader can be changed. A `Stickers` panel
+is included in the options sidebar of the `Shader Editor` to do so.
+
 ### Animation
 
 The `sticker` object is located under the selected geometry. There is a root
