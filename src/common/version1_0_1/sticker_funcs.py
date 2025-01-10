@@ -132,7 +132,7 @@ def create_a_plane_with_segments(x_segments, y_segments, size, name = "sticker",
     name       -- the name for the plane
     coll       -- the collection where the object will be linked
     returns:
-    obje       -- the plane created
+    obj       -- the plane created
     """
    
     bm = create_a_plane_mesh_with_uvs(x_segments, y_segments, size)
@@ -148,6 +148,41 @@ def create_a_plane_with_segments(x_segments, y_segments, size, name = "sticker",
     return obj
     #obj.show_name=True
     
+def create_custom_circle(segments=16,radius=1.0, name="sticker", coll = None):
+    """Creates the circle shape for the base node
+    segments -- integer number of segments for the circle
+    radius   -- float number for the radius of the circle
+    name     -- the name of the sticker base node
+    returns:
+    obj      -- the cirlce created
+    """
+
+    me = bpy.data.meshes.new(f"{name}_mesh")
+    obj = bpy.data.objects.new(name, me)
+    coll.objects.link(obj)
+    #new bmesh
+    bm = bmesh.new()
+    # load in a mesh
+    bm.from_mesh(me)
+
+    for i in range(1, 10):
+        # create circle
+        geom = bmesh.ops.create_circle(bm, 
+                    cap_ends=False,
+                    radius=radius,
+                    segments=segments)
+
+        verts = geom["verts"]
+        # translate verts
+        for v in verts:
+            v.co.z += 0.2
+            
+    # write back to mesh
+    bm.to_mesh(me)
+
+    return obj
+    
+    
     
 
 def create_empty(name='vertex-parent',coll=None, type='PLAIN_AXES'):
@@ -159,20 +194,23 @@ def create_empty(name='vertex-parent',coll=None, type='PLAIN_AXES'):
     """    
     bpy.context.scene.cursor.location = Vector((0.0, 0.0, 0.0))
     bpy.context.scene.cursor.rotation_euler = Vector((0.0, 0.0, 0.0))
-    #Movemos el cursor al centro y ya no tenemos que frizear
-
+ 
     empty = bpy.data.objects.new(
         f"{name}",
         None,
         )
     empty.empty_display_type = type
-    display_size = 1
+
     if type == 'SPHERE' or type == 'CIRCLE':
         display_size = 0.5
+    elif type == 'ARROWS':
+        display_size = 0.5
+    else: #'PLAIN_AXES'
+        display_size = 1        
     
     empty.empty_display_size = display_size
     coll.objects.link(empty) #añadimos a la collection
-    #print(coll.name)
+
     return empty
 
 def create_circle(name = 'vertex-parent', coll=None, radius = 1.0):
@@ -180,13 +218,10 @@ def create_circle(name = 'vertex-parent', coll=None, radius = 1.0):
     bpy.ops.curve.primitive_bezier_circle_add(radius = radius, enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
     ob = bpy.context.active_object
     ob.name = name
+
     return ob
     
     
-
-
-
-
 def parent_object_to_vertex_in_mesh(obj, parent_obj, index):
     """Parenting an object to a selected vertex in a mexh
     obj        -- the object to parent
@@ -196,8 +231,22 @@ def parent_object_to_vertex_in_mesh(obj, parent_obj, index):
     obj.parent = parent_obj
     obj.parent_type = 'VERTEX'
     obj.parent_vertices = [index] * 3 
+
+def get_vertex_translate_vector(obj, index):
     
-def create_constraint_to_object(obj=None, target_obj=None, kind='TRACK_TO', name='default_constraint'):
+    """Obtains the vertex location vector to move the base_node to
+    obj        -- the owner of the vertex
+    index      -- the index of the vertex we are going to use
+    returns:
+    v_global   -- Vector with the global vertex's position
+    """    
+    
+    v_local = obj.data.vertices[index].co # local vertex coordinate
+    v_global = obj.matrix_world @ v_local # global vertex coordinates
+    return v_global
+
+        
+def create_constraint_to_object(obj = None, target_obj = None, kind = 'TRACK_TO', axis = 'TRACK_Y', name = 'default_constraint'):
     """Create a empty object to parent with vertex
     obj        -- the object where the constraint will be
     target_obj -- if any
@@ -217,14 +266,16 @@ def create_constraint_to_object(obj=None, target_obj=None, kind='TRACK_TO', name
         constraint.target = target_obj
     if kind == 'SHRINKWRAP':
         constraint.use_track_normal = True
-        constraint.track_axis = 'TRACK_Z'
+        constraint.track_axis = axis
         constraint.shrinkwrap_type = 'TARGET_PROJECT'
         constraint.wrap_mode = 'ON_SURFACE'
-    else:
-        constraint.target_space='LOCAL'
-        constraint.track_axis = 'TRACK_Y'
+    elif kind == 'TRACK_TO':
+        #constraint.target_space='LOCAL'
+        constraint.track_axis = axis
         constraint.up_axis = 'UP_Y'
-        
+    else: # 'COPY_LOCATION'
+        pass
+            
     return constraint
 
 def add_driver_to_object(driven_obj, driver_obj, prop, data_path, var_name, expr, ndx = -1, transf_type = 'LOC_X', space = 'WORLD_SPACE'):
@@ -260,6 +311,34 @@ def add_driver_to_object(driven_obj, driver_obj, prop, data_path, var_name, expr
     target.transform_type = transf_type
         
     target.data_path = data_path
+
+def set_driven_key_for_scaleX_and_scaleY(node = None, obj = None):
+    
+    ''' Add the scaleX and scaleY drivers controlled by custom ScaleX and ScaleY
+        properties from the base_node
+        node -- the source node "driven_node"
+        obj  -- the target object "driver_obj"
+    '''
+    
+    driver = node.driver_add("scale", 0) # ScaleX scale[0]
+    
+    transp = driver.driver.variables.new()
+    transp.name = "scalex"
+    transp.type = 'SINGLE_PROP'
+    transp.targets[0].id_type = 'OBJECT'
+    transp.targets[0].id = obj
+    transp.targets[0].data_path = "ScaleX" 
+    driver.driver.expression = "scalex"
+
+    driver = node.driver_add("scale", 1) # ScaleY scale[0]
+    
+    transp = driver.driver.variables.new()
+    transp.name = "scaley"
+    transp.type = 'SINGLE_PROP'
+    transp.targets[0].id_type = 'OBJECT'
+    transp.targets[0].id = obj
+    transp.targets[0].data_path = "ScaleY" 
+    driver.driver.expression = "scaley"
 
 
 

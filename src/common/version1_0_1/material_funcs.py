@@ -1,11 +1,11 @@
 """
 [Blender and Python] Shader Utils library for Stickers Antaruxa
-Juan R Nouche - October 2024
+Juan R Nouche - January 2025
 Email: juan.nouche@antaruxa.com
 A Blender python functions library to create create and organize 
 the stiker shadernodes
 Antaruxa Stickers - Blender python shaders utils library
-Copyright (c) 2024 Antaruxa
+Copyright (c) 2025 Antaruxa
 --------
 """
 
@@ -38,10 +38,32 @@ def create_sticker_material_nodes(main_material=None, node_tree = None,
     """ Getting and moving the node connected tho object material's 
     Base Color
     """
+    #bsdf_node.inputs[“Base Color”].default_value = rgb_color
 
     main_node = node_tree.nodes[0]
     
     base_coord = [0,0]
+    
+    # if not node connected create a mix and connect it to main base color
+
+    if not main_node.inputs[input_conn].links: 
+        color = main_node.inputs[input_conn].default_value
+        print(color)
+        
+        default_node = node_tree.nodes.new( type = "ShaderNodeMix")
+                
+        default_node.name = f"{sticker_name}_default_node"
+        default_node.location.x = main_node.location.x - 220
+        default_node.location.y = main_node.location.y
+        
+        default_node.data_type = 'RGBA'
+        default_node.blend_type = 'MIX'
+        default_node.clamp_factor = True
+        default_node.inputs["Factor"].default_value = 0.0
+        default_node.inputs["A"].default_value = color
+        default_node.inputs["B"].default_value = (0, 0, 0, 0)
+        node_tree.links.new(default_node.outputs["Result"], main_node.inputs[input_conn])
+
 
     #getting the node connected to Base Color input
     connected_node, conneted_socket = get_node_and_socket_connected_to_input(main_node, input_conn)
@@ -52,9 +74,7 @@ def create_sticker_material_nodes(main_material=None, node_tree = None,
     base_coord[0] = main_node.location.x
     base_coord[1] = main_node.location.y
     #move left and right to make space for the group
-        # connected_node.location.x += -200
-    # connected_node.location.y += 300
-    
+
     moving_all_nodes_connected(main_node, -600, 450)
 
     """ Creating and positioning the mixer to transparency
@@ -73,7 +93,6 @@ def create_sticker_material_nodes(main_material=None, node_tree = None,
     # adding driver
     obj_who_drives = f"{sticker_name}_base_node"
     control_driver = bpy.data.objects[obj_who_drives]
-    control_driver["transparency"] = 0.0
     set_driven_key_for_transparency(mix_node, control_driver)
 
      
@@ -152,24 +171,21 @@ def create_sticker_material_nodes(main_material=None, node_tree = None,
     #
     obj_who_drives = f"{sticker_name}_base_node"
     map_driver = bpy.data.objects[obj_who_drives]
-    # add_driver_to_material(map_node, 
-    #                        map_driver, 
-    #                        "rotation_euler.z", "rotz", "-(rotz) + 0.0", 
-    #                        "Rotation", ndx = 2, 
-    #                        transf_type = 'ROT_Z', 
-    #                        space = 'TRANSFORM_SPACE')
-
+    set_driven_key_for_mapping_rotateZ(map_node, map_driver) 
 
     # add the texture coordinate
+    
     coord_node = node_tree.nodes.new(type = "ShaderNodeTexCoord")
     coord_node.name = f"{sticker_name}_obj_coords"
     base_coord[0] -= 200
     coord_node.location.x = base_coord[0]
     coord_node.location.y = base_coord[1]
     # conecting the object to use by the coord node
+    obj_to_attach = f"{sticker_name}_projection_node"
     coord_node.object = bpy.data.objects[obj_to_attach]
     
-    # add the combine XYZ node coordinate
+    # add the combine XYZ node coordinate1
+    
     xyz_node = node_tree.nodes.new(type = "ShaderNodeCombineXYZ")
     xyz_node.name = f"{sticker_name}_combine_XYZ"
     base_coord[1] -= 300
@@ -197,12 +213,6 @@ def create_sticker_material_nodes(main_material=None, node_tree = None,
                            transf_type = 'LOC_Z', 
                            space = 'WORLD_SPACE')
     
-    # add_driver_to_material( xyz_node, xyz_driver, 'location.x', 'X', 0)
-    # add_driver_to_material( xyz_node, xyz_driver, 'location.y', 'Y', 1)
-    # add_driver_to_material( xyz_node, xyz_driver, 'location.z', 'Z', 2)
-    
-
-    # fcurve = bpy.data.materials["Property Dump"].node_tree.nodes["Mix"].inputs[0].driver_add("default_value")
 
     """ Now we are going to make the conections
     """
@@ -289,6 +299,7 @@ def create_sticker_shader_group(group_name):
     facing_node.location = (200,-300)
     facing_node.use_clamp = True
     facing_node.operation = 'GREATER_THAN'
+    facing_node.inputs[1].default_value = 0  #REALLY IMPORTANT FOR SCALE
 
     # filter_mix_node ShaderNodeMixRGB - Filter by Facing (400,100) 
     # data_type 'RGBA', blend_type 'MIX', clamp_result True, clamp_factor True
@@ -358,7 +369,7 @@ def create_sticker_shader_group(group_name):
     return sticker_group
 
 
-def remove_all_the_nodes_from_sticker(sticker_name, material, node_name_list):
+def remove_all_the_nodes_from_sticker(sticker_name, material, node_name_list, select = False):
     """Once disconnected remove all the shader nodes for this sticker
     sticker_name   -- the name of the sticker
     material       -- the base material where the sticker nodes are inserted (to get the node_tree)
@@ -371,7 +382,7 @@ def remove_all_the_nodes_from_sticker(sticker_name, material, node_name_list):
     
     for node_name in node_name_list:
         obj = node_tree.nodes[node_name]
-        obj.select = True # to update node_tree
+        obj.select = select # to update node_tree
         node_tree.nodes.remove(obj)
 
 
@@ -465,7 +476,7 @@ def set_driven_key_for_transparency(node = None, obj = None):
     transp.targets[0].id = obj
     transp.targets[0].data_path = "transparency" 
     driver.driver.expression = "transparency"
-    
+
 
 def set_driven_key_for_animated_sequence(img = None, obj = None, img_firstframe = None): 
 
@@ -550,6 +561,25 @@ def add_driver_to_material(driven_node, driver_obj, data_path, var_name, expr, i
         
     target.data_path = data_path
 
+
+def set_driven_key_for_mapping_rotateZ(node = None, obj = None):
+    
+    ''' Add the mapping node inputs["Rotation"].default_value[2] (rotateZ) 
+        driver controlled by custom Rotate property from base node
+        node -- the mapping node
+        obj  -- the target object "driver_obj" (base_node)
+    '''
+    
+    driver = node.inputs["Rotation"].driver_add("default_value", 2) # RotateZ 
+
+    
+    transp = driver.driver.variables.new()
+    transp.name = "rotz"
+    transp.type = 'SINGLE_PROP'
+    transp.targets[0].id_type = 'OBJECT'
+    transp.targets[0].id = obj
+    transp.targets[0].data_path = "Rotate" 
+    driver.driver.expression = "radians(-(rotz)) + 0.0"
 
 
 # ==== IMAGE SEQUENCE FUNCTIONS (AUX)
@@ -771,8 +801,7 @@ def select_all_nodes_connected(node_in, nodelist):
 
     returns:
     a list of nodes to delete in nodelist
-    """     
-   
+    """ 
     for n_inputs in node_in.inputs:
         for node_links in n_inputs.links:
             current_node = node_links.from_node
@@ -782,9 +811,9 @@ def select_all_nodes_connected(node_in, nodelist):
             else:
                 print("It's repeated!!")
             select_all_nodes_connected(current_node, nodelist)
+   
 
-
-def get_all_shader_nodes_from_a_sticker(node_tree, sticker_name):
+def get_all_shader_nodes_from_a_sticker(node_tree, sticker_name, select = False):
 
     """Gets all the shadernodes that belong tho the sticker
     node_tree    -- the node_tree where the sticker belong
@@ -798,7 +827,7 @@ def get_all_shader_nodes_from_a_sticker(node_tree, sticker_name):
     selected_stickers = []
     for stick in sticker_shader_nodes:
         node = node_tree.nodes[stick]
-        node.select = True
+        node.select = select
         selected_stickers.append(node)
     return selected_stickers
 
@@ -887,6 +916,15 @@ def check_if_is_the_topmost(material = None, sticker_name = ""):
     
 def check_if_is_the_downmost(material = None, sticker_name = ""): 
     
+    """Check if the stickershader is the downmost
+    material     -- the material where the sticker is connected
+    sticker_name -- the name of the sticker that we are going to check
+    returns:
+    True or False
+    """   
+    
+    node_tree = material.node_tree
+    
     # sticker_group = node_tree.nodes[f"{sticker_name}_group"] 
     mix_node = node_tree.nodes[f"{sticker_name}_mix_node"] #getting the final node
     
@@ -949,7 +987,6 @@ def interchange_sticker_connections_and_positions(material = None, sticker_name 
     returns:
     True or False
     """   
-    
     
     node_tree = material.node_tree
     current_node = node_tree.nodes[f"{sticker_name}_mix_node"] #getting the final node
@@ -1014,14 +1051,14 @@ def interchange_sticker_connections_and_positions(material = None, sticker_name 
     for node in node_tree.nodes: 
         node.select = False
     if up: #moving all current nodes up and all nodes_to down
-        moving_all_nodes_from_a_sticker(node_tree, stck_name, -600, 450) #up node
-        moving_all_nodes_from_a_sticker(node_tree, sticker_name, 600, -450) #up node
+        moving_all_nodes_from_a_sticker(node_tree, stck_name, -600, 450, False) #up node
+        moving_all_nodes_from_a_sticker(node_tree, sticker_name, 600, -450, True) #up node
     else: #moving al current nodes down and all nodes_to up
-        moving_all_nodes_from_a_sticker(node_tree, stck_name, 600, -450) #up node
-        moving_all_nodes_from_a_sticker(node_tree, sticker_name, -600, 450) #up node
+        moving_all_nodes_from_a_sticker(node_tree, stck_name, 600, -450, False) #up node
+        moving_all_nodes_from_a_sticker(node_tree, sticker_name, -600, 450, True) #up node
        
         
-def moving_all_nodes_from_a_sticker(node_tree, sticker_name, offset_X, offset_Y):
+def moving_all_nodes_from_a_sticker(node_tree, sticker_name, offset_X, offset_Y, select = False):
     """ moving all the nodes conected to a node_in 
     node_tree  -- the node_tree where the nodes to mov are
     sticker_name -- the name of the sticker to move
@@ -1038,7 +1075,7 @@ def moving_all_nodes_from_a_sticker(node_tree, sticker_name, offset_X, offset_Y)
         final_Y = nod.location.y + offset_Y
         nod.location.x = final_X
         nod.location.y = final_Y
-        nod.select = True
+        nod.select = select
 
  
 def moving_all_nodes_connected(node_in, offset_X, offset_Y):

@@ -1,11 +1,11 @@
 """
 [Blender and Python] Property getter-setter library for Stickers Antaruxa
-Juan R Nouche - October 2024
+Juan R Nouche - January 2025
 Email: juan.nouche@antaruxa.com
 A Blender python functions library to create create and organize 
 the stiker shadernodes
 Antaruxa Stickers - Blender python property getter-setter library
-Copyright (c) 2024 Antaruxa
+Copyright (c) 2025 Antaruxa
 --------
 """
 
@@ -31,6 +31,7 @@ def get_sticker_name(self):
 #                 child.hide_viewport = value
 #                 child.hide_render = value
 
+
 '''Getter-Setter flip_X Boolean
 '''
 def get_flip_X(self):
@@ -40,14 +41,14 @@ def set_flip_X(self,value):
     obj = self.id_data
     if "_base_node" in obj.name:
         sticker_name = obj.sticker_name
-        anchor = obj.parent
-        main_obj = anchor.parent
+        main_obj = obj.parent
         main_material = main_obj.active_material
         for child in obj.children:
             if "_plane" in child.name:
                 child.scale[0]=-child.scale[0]
         actualvalue = main_material.node_tree.nodes[f"{sticker_name}_mapping"].inputs[3].default_value[0]
         main_material.node_tree.nodes[f"{sticker_name}_mapping"].inputs[3].default_value[0] = -actualvalue
+
 
 '''Getter-Setter flip_Y Boolean
 '''
@@ -58,14 +59,14 @@ def set_flip_Y(self,value):
     obj = self.id_data
     if "_base_node" in obj.name:
         sticker_name = obj.sticker_name
-        anchor = obj.parent
-        main_obj = anchor.parent
+        main_obj = obj.parent
         main_material = main_obj.active_material
         for child in obj.children:
             if "_plane" in child.name:
                 child.scale[1]=-child.scale[1]
         actualvalue = main_material.node_tree.nodes[f"{sticker_name}_mapping"].inputs[3].default_value[1]
         main_material.node_tree.nodes[f"{sticker_name}_mapping"].inputs[3].default_value[1] = -actualvalue
+
 
 '''Getter frame_count only getter (read only)
 '''

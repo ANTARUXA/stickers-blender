@@ -53,6 +53,12 @@ class StickerPreferences(AddonPreferences):
         default = False
     )
 
+    is_mat_selected: BoolProperty(
+        name="Select the sticker materials",
+        description="Bool to select the sticker materials",
+        default = False
+        )
+
 
 
     def draw(self, context: bpy.types.Context):
@@ -62,4 +68,5 @@ class StickerPreferences(AddonPreferences):
         layout.prop(self, "img_filename")
         layout.prop(self, "is_image_sequence")
         layout.prop(self, "is_anim_select")
+        layout.prop(self, "is_mat_selected")
 

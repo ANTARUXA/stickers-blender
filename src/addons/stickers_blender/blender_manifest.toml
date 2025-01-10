@@ -1,7 +1,7 @@
-schema_version = "1.0.0"
+schema_version = "1.0.1"
 
 id = "stickers_blender"
-version = "0.0.1"
+version = "0.0.2"
 name = "Stickers Antaruxa"
 tagline = "This is another extension"
 maintainer = "Developer name <juan.nouche@antaruxa.com>"
@@ -18,6 +18,6 @@ license = [
 ]
 
 copyright = [
-   "2024 Juan R Nouche",
-   "2024 Antaruxa SL",
+   "2025 Juan R Nouche",
+   "2025 Antaruxa SL",
 ]

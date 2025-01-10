@@ -1,10 +1,10 @@
 """
 [Blender and Python] Cretion Class for Stickers
-Juan R Nouche - October 2024
+Juan R Nouche - January 2025
 Email: juan.nouche@antaruxa.com
 The main class used to create stickers
 Antaruxa Stickers - Blender python main creation Sticker Class
-Copyright (c) 2024 Antaruxa
+Copyright (c) 2025 Antaruxa
 --------
 """
 
@@ -17,7 +17,7 @@ import mathutils
 from mathutils import (Vector)
 
 
-from stickers_blender.common.sticker_funcs import (
+from stickers_blender.common.version1_0_1.sticker_funcs import (
     create_a_plane_with_segments,
     create_empty,
     create_circle,
@@ -29,9 +29,12 @@ from stickers_blender.common.sticker_funcs import (
     create_custom_properties_for_sticker,
     check_if_sticker_name_exists,
     add_driver_to_object,
+    create_custom_circle,
+    get_vertex_translate_vector,
+    set_driven_key_for_scaleX_and_scaleY, 
 )
 
-from stickers_blender.common.material_funcs import (
+from stickers_blender.common.version1_0_1.material_funcs import (
     create_sticker_shader_group,
     add_driver_to_material,
     create_sticker_material_nodes,
@@ -41,7 +44,7 @@ from stickers_blender.common.material_funcs import (
     # create_material_for_sticker_plane,
     disconnect_sticker_material,
     remove_all_the_nodes_from_sticker,
-    check_image_file_sequence,  
+    check_image_file_sequence,
 )
 
 
@@ -80,6 +83,7 @@ class Sticker(object):
             self.anchor_empty       = None
             self.base_node          = None
             self.calcnormal_node    = None
+            self.proj_empty         = None
             self.aux_plane          = None
             
             self.material_node_tree = None
@@ -125,11 +129,9 @@ class Sticker(object):
                 else:
                     
                     self.anchor_vertex = selected_verts[0]
-                    self.create_anchor_empty_and_parent(self.sticker_name)
-                    self.anchor_empty.lock_location = (True, True, True) 
                     self.create_and_parent_base_sticker_node(self.sticker_name)
                     self.create_and_parent_calcnormal_node(self.sticker_name)
-
+                    self.create_projection_empty_and_parent(self.sticker_name)
 
                     head, tail = os.path.split(img_filename)
                     #reusing a single image if it exists
@@ -156,11 +158,14 @@ class Sticker(object):
                     #creates the plane deactivated in this version
                     #self.create_and_parent_the_aux_plane(self.sticker_name) 
 
-                    bpy.ops.object.mode_set(mode='OBJECT', toggle=False) #dejamos en modo objeto
-                                       
+                    bpy.ops.object.mode_set(mode='OBJECT', toggle=False) #exit to object mode
+                    
+                    for node in main_material.node_tree.nodes:
+                        node.select = False
+                               
                     
                     return ALL_DONE
-                
+
     def create_anchor_empty_and_parent(self, name="sticker"):
         """Creates an empty which will be used to anchoring the sticker
         name       -- Name of the sticker
@@ -172,7 +177,7 @@ class Sticker(object):
         self.anchor_empty = create_empty(f"{name}_anchor_vertex", self.collection, 'SPHERE')
         parent_object_to_vertex_in_mesh(self.anchor_empty, self.current_obj, self.anchor_vertex.index)
         self.anchor_empty.hide_viewport = True
-
+                
     def create_and_parent_base_sticker_node(self, name="sticker"):
         """Creates an empty which will be used as base node for the sticker
         name       -- Name of the sticker
@@ -181,24 +186,49 @@ class Sticker(object):
 
         """      
 
-        self.base_node = create_empty(f"{name}_base_node", self.collection,'CIRCLE')
-        #deactivated in this version
-        #self.base_node = create_circle(f"{name}_base_node", self.collection, radius = 1.0)
-        self.base_node.parent = self.anchor_empty
-        create_constraint_to_object(self.base_node, self.current_obj, 'SHRINKWRAP', f"{name}_geo_shrinkwrap")
-        create_constraint_to_object(self.base_node, self.current_obj, 'TRACK_TO', f"{name}_geo_track_to")
+        # Creating the shape for base node
+        self.base_node = create_custom_circle(32,0.5, f"{name}_base_node", self.collection) 
+
+        # Get location from the selected vertex
+        vector = get_vertex_translate_vector(self.current_obj, self.anchor_vertex.index)
+        print("vertex", self.anchor_vertex.index)
+
+        # Move to vertex location
+        self.base_node.location = self.base_node.location + vector
+
+        # # Applying location to deltas
+        # self.base_node.select_set(True)
+        # bpy.ops.object.transforms_to_deltas(mode='LOC')
+        # # bpy.context.view_layer.objects.active = self.base_node
+        # # bpy.ops.object.transform_apply(location=True, rotation=False, scale=False)
+        # self.base_node.select_set(False)
+        
+        # Parenting with parent inverse to preserve transforms
+        self.base_node.parent = self.current_obj
+        self.base_node.matrix_parent_inverse = self.current_obj.matrix_world.inverted()
+        
+        # # parenting
+        # parent_object_to_vertex_in_mesh(self.base_node, self.current_obj, self.anchor_vertex.index)
+        # self.base_node.parent = self.current_obj
+      
+        # Constraining
+        create_constraint_to_object(self.base_node, self.current_obj, 'SHRINKWRAP', 'TRACK_Z', f"{name}_geo_shrinkwrap")
+        create_constraint_to_object(self.base_node, self.current_obj, 'TRACK_TO', 'TRACK_Y', f"{name}_geo_track_to")
+
+        # Set default custom attributes        
         self.base_node['sticker_name'] = name
         #deactivated in this version
         #self.base_node['hide_plane'] = False
         self.base_node['flip_X'] = False
         self.base_node['flip_Y'] = False
+        self.base_node["ScaleX"] = 1.0
+        self.base_node["ScaleY"] = 1.0
+        self.base_node["Rotate"] = 0
+        self.base_node["transparency"] = 0.0
         self.base_node.lock_rotation[0] = True #Locking RotateX
         self.base_node.lock_rotation[1] = True #Locking RotateY
         self.base_node.lock_scale[2] = True    #Locking ScaleZ
 
-
-
-        
 
     def create_and_parent_calcnormal_node(self, name="sticker"):
         """Creates an empty which will be used as main node for the sticker
@@ -213,6 +243,32 @@ class Sticker(object):
         self.calcnormal_node.location = Vector((0.0, 0.0, 1.0))
         self.calcnormal_node.hide_viewport = True        
     
+    def create_projection_empty_and_parent(self, name="sticker"):
+        """Creates an empty which will be used to anchoring the sticker
+        name       -- Name of the sticker
+
+        returns:
+
+        """      
+
+        # Creating an empty to project the sticker
+        self.proj_empty = create_empty(f"{name}_projection_node", self.collection, 'ARROWS')
+
+        # Parenting
+        self.proj_empty.parent = self.current_obj
+        self.proj_empty.matrix_parent_inverse = self.current_obj.matrix_world.inverted()
+                
+        # Constraining
+        create_constraint_to_object(self.proj_empty, self.calcnormal_node, 'COPY_LOCATION', '', f"{name}_proj_copyloc")
+        create_constraint_to_object(self.proj_empty, self.base_node, 'TRACK_TO', 'TRACK_Z', f"{name}_proj_track_to")
+
+        # Set driven to control scaleX and Y from base nodeo
+        set_driven_key_for_scaleX_and_scaleY(self.proj_empty, self.base_node)
+
+        self.proj_empty.hide_viewport = True
+
+
+
     #realated with plane creation deactivated in this version
 
     # def create_and_parent_the_aux_plane(self, name):
@@ -225,8 +281,8 @@ class Sticker(object):
     #     """      
         #self.aux_plane = create_a_plane_with_segments(10, 10, 0.5, f"{name}_aux_plane", self.collection)
         #self.aux_plane.parent = self.base_node
-        # create_constraint_to_object(self.aux_plane, self.current_obj, 'SHRINKWRAP', "aux_plane_shrinkwrap")
-        # create_constraint_to_object(self.aux_plane, self.current_obj, 'TRACK_TO', "aux_plane_track_to")
+        # create_constraint_to_object(self.aux_plane, self.current_obj, 'SHRINKWRAP', 'TRACK_Z', "aux_plane_shrinkwrap")
+        # create_constraint_to_object(self.aux_plane, self.current_obj, 'TRACK_TO', 'TRACK_Y', "aux_plane_track_to")
        
         # add_driver_to_object(self.aux_plane, self.base_node, 
         #                      "rotation_euler", "rotation_euler.z", 

@@ -1,6 +1,6 @@
 """
 [Blender and Python] Operators code for Stickers Antaruxa
-Juan R Nouche - October 2024
+Juan R Nouche - January 2024
 Email: juan.nouche@antaruxa.com
 A Blender python functions library to create create and organize 
 the stiker shadernodes
@@ -21,7 +21,7 @@ from mathutils import (Vector)
 from stickers_blender.addons.stickers_blender.config import __addon_name__
 from stickers_blender.addons.stickers_blender.preference.AddonPreferences import StickerPreferences
 
-from stickers_blender.common.sticker_class import (
+from stickers_blender.common.version1_0_1.sticker_class import (
     Sticker,
     NO_VERTEX_SELECTED,
     NO_MESH_SELECTED,
@@ -32,18 +32,19 @@ from stickers_blender.common.sticker_class import (
     ALL_DONE,
 )
 
-from stickers_blender.common.sticker_funcs import (
+from stickers_blender.common.version1_0_1.sticker_funcs import (
     is_valid_image_extension,
     is_valid_image_imghdr,
     check_if_sticker_name_exists,
 )
-from stickers_blender.common.material_funcs import (
+from stickers_blender.common.version1_0_1.material_funcs import (
     check_image_file_sequence,
     disconnect_sticker_material,
     remove_all_the_nodes_from_sticker, 
     check_if_is_the_downmost,
     check_if_is_the_topmost,
     interchange_sticker_connections_and_positions,
+    get_all_shader_nodes_from_a_sticker,
     
 )
 
@@ -152,9 +153,9 @@ class RemoveSticker(bpy.types.Operator):
             return{'CANCELLED'}            
 
         sticker_objs = [
-            f"{stickername}_anchor_vertex",
             f"{stickername}_base_node",
             f"{stickername}_normal_node",
+            f"{stickername}_projection_node",        
             #for the plane deactivated in this version
             #f"{stickername}_aux_plane",
         ] 
@@ -177,7 +178,9 @@ class RemoveSticker(bpy.types.Operator):
             objs.remove(objs[obj_name], do_unlink=True)
         
         disconnect_sticker_material(stickername, main_material)
-        remove_all_the_nodes_from_sticker(stickername, main_material, sticker_shader_nodes)
+        remove_all_the_nodes_from_sticker(stickername, main_material, sticker_shader_nodes, False)
+        for node in main_material.node_tree.nodes:
+            node.select = False
             
         bpy.ops.outliner.orphans_purge()        
 
@@ -185,8 +188,64 @@ class RemoveSticker(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class StickerMatSelect(bpy.types.Operator):
+    """Operator class to select the sticker materials
+    in the node_tree
+    """    
+    
+    bl_idname = 'opr.sticker_mat_select'
+    bl_label = 'Select'
+    bl_options = {'REGISTER','UNDO'}
+
+   
+    def execute(self, context):
+        
+        addon_prefs = bpy.context.preferences.addons[__addon_name__].preferences
+        assert isinstance(addon_prefs, StickerPreferences)
+
+        stickername = addon_prefs.sticker_name 
+        is_selected = addon_prefs.is_mat_selected
+        
+        
+ 
+        if not check_if_sticker_name_exists(stickername):
+            addon_prefs.is_mat_selected = False
+            self.report({'ERROR'}, "Can't find the sticker in scene. Check the sticker name.")
+            return{'CANCELLED'} 
+                   
+
+        sticker_objs = [
+            f"{stickername}_base_node",
+            f"{stickername}_normal_node",
+            f"{stickername}_projection_node",
+            #for the plane deactivated in this version
+            #f"{stickername}_aux_plane",
+        ] 
+        
+        main_obj = bpy.data.objects[sticker_objs[0]].parent
+        main_obj.select_set(True)
+        main_material = main_obj.active_material
+        node_tree = main_material.node_tree
+ 
+        for node in node_tree.nodes:
+            node.select = False
+         
+        if is_selected:
+            get_all_shader_nodes_from_a_sticker(node_tree, stickername, select = False)  
+            addon_prefs.is_mat_selected = False
+            self.report({'INFO'}, f"The sticker {stickername} materials have been deselected !!!") 
+        else: 
+            get_all_shader_nodes_from_a_sticker(node_tree, stickername, select = True)  
+            addon_prefs.is_mat_selected = True
+            self.report({'INFO'}, f"The sticker {stickername} materials have been selected !!!") 
+            
+        [a.tag_redraw() for a in context.screen.areas]                   
+        return {'FINISHED'}
+
+
+
 class StickerMatUp(bpy.types.Operator):
-    """Operator class to move up the sticker shadernodes
+    """Operator class to move 'up' the sticker shadernodes
     in the node_tree
     """    
     
@@ -201,16 +260,22 @@ class StickerMatUp(bpy.types.Operator):
         assert isinstance(addon_prefs, StickerPreferences)
 
         stickername = addon_prefs.sticker_name 
-       
+        is_selected = addon_prefs.is_mat_selected
  
-        if not check_if_sticker_name_exists(stickername):
-            self.report({'ERROR'}, "Can't find the sticker in scene. Check the sticker name.")
+        if not is_selected:
+            self.report({'ERROR'}, "You need to select the sticker materials first.")
             return{'CANCELLED'}            
 
+        if not check_if_sticker_name_exists(stickername):
+            addon_prefs.is_mat_selected = False
+            self.report({'ERROR'}, "Can't find the sticker in scene. Check the sticker name.")
+            return{'CANCELLED'} 
+
+
         sticker_objs = [
-            f"{stickername}_anchor_vertex",
             f"{stickername}_base_node",
             f"{stickername}_normal_node",
+            f"{stickername}_projection_node",
             #for the plane deactivated in this version
             #f"{stickername}_aux_plane",
         ] 
@@ -230,7 +295,7 @@ class StickerMatUp(bpy.types.Operator):
 
         
 class StickerMatDown(bpy.types.Operator):
-    """Operator class to move down the sticker shadernodes
+    """Operator class to move 'down' the sticker shadernodes
     in the node_tree
     """    
     
@@ -245,16 +310,22 @@ class StickerMatDown(bpy.types.Operator):
         assert isinstance(addon_prefs, StickerPreferences)
 
         stickername = addon_prefs.sticker_name 
-       
+        is_selected = addon_prefs.is_mat_selected
  
-        if not check_if_sticker_name_exists(stickername):
-            self.report({'ERROR'}, "Can't find the sticker in scene. Check the sticker name.")
+        if not is_selected:
+            self.report({'ERROR'}, "You need to select the sticker materials first.")
             return{'CANCELLED'}            
 
+        if not check_if_sticker_name_exists(stickername):
+            addon_prefs.is_mat_selected = False
+            self.report({'ERROR'}, "Can't find the sticker in scene. Check the sticker name.")
+            return{'CANCELLED'} 
+
+
         sticker_objs = [
-            f"{stickername}_anchor_vertex",
             f"{stickername}_base_node",
             f"{stickername}_normal_node",
+            f"{stickername}_projection_node",
             #for the plane deactivated in this version
             #f"{stickername}_aux_plane",
         ] 

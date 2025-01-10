@@ -14,7 +14,6 @@ import bpy
 from stickers_blender.addons.stickers_blender.config import __addon_name__
 from stickers_blender.addons.stickers_blender.operators.AddonOperators import AddNewSticker
 from stickers_blender.addons.stickers_blender.operators.AddonOperators import RemoveSticker
-from stickers_blender.common.i18n.i18n import i18n
 
 
 class StickerObjectPanel(bpy.types.Panel):
@@ -27,11 +26,15 @@ class StickerObjectPanel(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = 'Stickers'
     
+    @classmethod
+    def poll(cls, context: bpy.types.Context):
+        return True
 
     
     def draw(self, context: bpy.types.Context):
 
         addon_prefs = context.preferences.addons[__addon_name__].preferences
+        #addon_prefs = bpy.context.preferences.addons[__addon_name__].preferences
 
         layout = self.layout
        
@@ -53,9 +56,7 @@ class StickerObjectPanel(bpy.types.Panel):
         row.operator(AddNewSticker.bl_idname, text=AddNewSticker.bl_label)
         row.operator(RemoveSticker.bl_idname, text=RemoveSticker.bl_label)
         
-    @classmethod
-    def poll(cls, context: bpy.types.Context):
-        return True
+      
 
 
 class StickerMaterialPanel(bpy.types.Panel):
@@ -77,14 +78,16 @@ class StickerMaterialPanel(bpy.types.Panel):
 
         layout = self.layout
         
-        layout = self.layout
-       
-    
+      
+   
         row = layout.row()
         row.label(text="Put the name of sticker and move up and down")
         
         row = layout.row()
         stick = layout.prop(addon_prefs, "sticker_name")
+
+        row = layout.row(align = True)
+        layout.operator("opr.sticker_mat_select", text="Select/Unselect")
 
         row = layout.row(align = True)
         row.operator("opr.sticker_down", text="Move Down")
