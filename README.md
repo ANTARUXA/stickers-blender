@@ -150,7 +150,8 @@ geometry, and it's movement will depend directly to that.
 > [!WARNING]
 >`Stickers` will work correctly on animated surfaces with basic transformations
 > or shape keys. The sticker will not work well on animated surfaces controlled by armatures
-> and bones. We are working on a version of sticker riggin specifically for rigged surfaces. .
+> and bones. We are working on a version called `Rigged Sticker` designed specifically for 
+> rigged surfaces.
 
 `{sticker_name}_base_node` which is the main controller node, holds the
 principal properties and can be animated.
