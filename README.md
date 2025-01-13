@@ -210,9 +210,10 @@ same unique name of the sticker and press `Remove sticker`.
 ### Move sticker shadernodes up/down in render order
 
 In the sidebar of `Shader Editor` you'll find a `Sticker` tab also that open a
-panel from which you can move up and down the sticker shadernodes. Fill the name
-of the sticker on `Sticker Name` field and then use the buttons `Move Up` or
-`Move Down` to increase or decrease the sticker shadernodes layer position from
+panel from which you can move up and down the sticker shadernodes. 
+Fill the name of the sticker on `Sticker Name` field and press the `Select/Unselect`
+button to select the sticker shadernodes, once they are selected use the buttons 
+`Move Up` or `Move Down` to increase or decrease the sticker shadernodes layer position from
 top to bottom and vice versa.
 
 ### Specific image selection (Multi-pose sticker)
@@ -230,7 +231,7 @@ By setting this property to any valid number for the image sequence, the
 
 > [!TIP]
 >We recommend to set the animation curves to 'CONSTANT' if you want to avoid
->animation interleaving
+>undesirable animation interleaving
 
 ## Acknowledgments
 
