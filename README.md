@@ -128,15 +128,17 @@ Each tag creates a group of nodes connected to the main material of the base geo
 The main material is required to be a `Principled BSDRF` shader.
 In this version, the sticker nodes are only connected to the `Base Color` input of the main shader.
 
-A texture node connected to the base color input is required. If none is connected, the sticker
+A texture node connected to the base color input is preferable. If none is connected, the sticker
 will automatically create a `Mix` shader node by copying the value of the `Base Color` property
-to the `A` input of the new shader mix node. After that, the insertion of the sticker will be possible. 
+to the `A` input of the new shader mix node. After that, the sticker is connected.
 
 If you later want to change the base color you will have to do it in the `A` entry of the mix node.
 
 The order in which the stickers are projected in the main shader can be changed. A `Stickers` panel
 is included in the options sidebar of the `Shader Editor` to do so. You can select the sticker shaders
-by sticker name and move it "up" and "down" to avoid overlappings between different stickers.
+by sticker name and move it "up" and "down" to avoid (or create) overlappings between different stickers.
+
+Before opening the Shader Editor it is best to have the geometry containing the stickers selected.
 
 ### Animation
 
