@@ -164,6 +164,8 @@ The `base_node` is in charge of all the channles that can be animated.
 
   All 3 axis `X`, `Y`, `Z` are free to move and keyable
 
+2. And custom properties to animate the other sticker features:
+
 * Rotation
 
   Because the projection is perpendicular to the normal of the geometry, only
@@ -174,8 +176,6 @@ The `base_node` is in charge of all the channles that can be animated.
 
   You can find also in the `base_node` two properties to do scale. Both `ScaleX` and `ScaleY` 
   axis can be scaled and keyed. 
-
-2. And custom properties to animate the other sticker features:
 
 * Flip
 
