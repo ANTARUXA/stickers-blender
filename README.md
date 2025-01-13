@@ -51,10 +51,13 @@ You could check that the installation has worked if the `Stickers` tab appears i
 
 From the 3d view sidebar select the tab `Stickers`, it opens the panel from which we
 can get most of the sticker features.
-You can move, rotate and scale the sticker from the sticker object standard properties,
-once it has been created. 
+
+You can move the sticker from the sticker object standard properties, once it has been created. 
+
+Scale and rotation can be done from the custom properties of the sticker object.
+
 The other sticker features such as flip horizontal and vertical, set transparency or 
-select the active frame in pose mode, can be done from the custom properties of the 
+select the active frame in pose mode, can also be done from the custom properties of the 
 sticker object.
 
 ### Creating a sticker
@@ -132,20 +135,20 @@ to the `A` input of the new shader mix node. After that, the insertion of the st
 If you later want to change the base color you will have to do it in the `A` entry of the mix node.
 
 The order in which the stickers are projected in the main shader can be changed. A `Stickers` panel
-is included in the options sidebar of the `Shader Editor` to do so.
+is included in the options sidebar of the `Shader Editor` to do so. You can select the sticker shaders
+by sticker name and move it "up" and "down" to avoid overlappings between different stickers.
 
 ### Animation
 
 The `sticker` object is located under the selected geometry. There is a root
-node called `{sticker_name}_anchor_node` that 'anchors' the sticker to the
+node called `{sticker_name}_base_node` that 'anchors' the sticker to the
 geometry. The `sticker` is essentially constrained to the surface of the
 geometry, and it's movement will depend directly to that.
 
 > [!WARNING]
->`Stickers` use a shrinkwarp to the main surface, so if te main surface needs to 
->animate basic transforms or mesh transformations (like blend shapes), it's best 
->to animate them first and then do sticker animation to avoid undesirable
->displacements over the sticker rotation.
+>`Stickers` will work correctly on animated surfaces with basic transformations
+> or shape keys. The sticker will not work well on animated surfaces controlled by armatures
+> and bones. We are working on a version of sticker riggin specifically for rigged surfaces. .
 
 `{sticker_name}_base_node` which is the main controller node, holds the
 principal properties and can be animated.
@@ -161,12 +164,13 @@ The `base_node` is in charge of all the channles that can be animated.
 * Rotation
 
   Because the projection is perpendicular to the normal of the geometry, only
-  the `Z` axis can be used to rotate the sticker. It's also keyable.
+  the `Z` axis can be used to rotate the sticker. You'll find a `Rotate` custom
+  property in the `base_node` to do that. It's also keyable.
 
 * Scaling
 
-  Both `X` and `Y` axis can be scaled and keyed, scaling on the Z axis doesn't
-  affect the sticker. 
+  You can find also in the `base_node` two properties to do scale. Both `ScaleX` and `ScaleY` 
+  axis can be scaled and keyed. 
 
 2. And custom properties to animate the other sticker features:
 
@@ -223,7 +227,7 @@ By setting this property to any valid number for the image sequence, the
 
 > [!TIP]
 >We recommend to set the animation curves to 'CONSTANT' if you want to avoid
->interpolation shennanigans
+>animation interleaving
 
 ## Acknowledgments
 
@@ -237,6 +241,7 @@ to create, evaluate and release blender add-ons has been fundamental for us.
 
 - [ ] Add support for more texture maps (Normal, Bump, Roughness...)
 - [ ] Add better support for more types of image file formats.
-- [ ] Add `bake sticker to texture` routine
-- [ ] Add render layer compatibility
-- [ ] Functional improvements
+- [ ] Add `bake sticker to texture` routine.
+- [ ] Add render layer compatibility.
+- [ ] `Rigged Stickers` version to manipulate stickers on rigged surfaces.
+- [ ] Add a more deep documentation and tutorials.
